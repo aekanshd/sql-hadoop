@@ -8,6 +8,9 @@ class SimpleSQLParser():
 
     def addQuery(self, query):
         self.QUERY = query
+        
+    def getParsedQuery(self):
+        return self.DICTIONARY
 
     def clearAndMakeError(self, error):
         self.DICTIONARY = dict()
