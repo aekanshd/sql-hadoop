@@ -120,8 +120,3 @@ class SimpleSQLParser:
                 self.DICTIONARY['columns'].append(columns[index].strip())
 
         return 1
-
-q = "SELECT col1 WHERE col2 >= 3 OR col3 > 5;"
-parser = SimpleSQLParser()
-parser.parseQuery(q, strict=True)
-print(parser.getParsedQuery())
