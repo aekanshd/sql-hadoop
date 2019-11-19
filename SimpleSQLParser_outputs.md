@@ -18,7 +18,7 @@ SELECT col1,col2 FROM table1 WHERE col1 = 2
 SELECT col1,col2 FROM table1 WHERE col1 = 2 OR col1 = 3
 > {'type': 'SELECT', 'columns': ['col1', 'col2'], 'CLAUSES': {'AND': [], 'OR': ['col1 = 2', 'col1 = 3']}}
 SELECT col1,col2 FROM table1 WHERE col1 = 2 OR col1 = 3 AND col4 = 5
-> {'type': 'SELECT', 'columns': ['col1', 'col2'], 'CLAUSES': {'AND': ['col4 = 5', 'col1 = 2'], 'OR': ['col1 = 3']}}
+> {'type': 'SELECT', 'columns': ['col1', 'col2'], 'CLAUSES': {'AND': ['col4 = 5', 'col1 = 3'], 'OR': ['col1 = 2']}}
 SELECT col1,col2 FROM table1 WHERE col1 = 3 AND col4 = 5
 > {'type': 'SELECT', 'columns': ['col1', 'col2'], 'CLAUSES': {'AND': ['col1 = 3', 'col4 = 5'], 'OR': []}}
 SELECT col1,col2 FROM table1 WHERE 
@@ -31,14 +31,13 @@ SELECT , WHERE col1 = 2
 > {'error': 'Incorrect Syntax. (incomplete column names)'}
 SELECT col1 WHERE (col1 = 2 OR col2= 1) AND col3 =3
 > {'error': 'This parser does not support brackets.'}
-SELECT col1
-> {'error': 'Syntax error. [STRICT ON]'}
+SELECT col1 Where a1 = 2 Or a2 = 3 And b = 4;
+> {'type': 'SELECT', 'columns': ['col1'], 'CLAUSES': {'AND': ['b = 4', 'a2 = 3'], 'OR': ['a1 = 2']}}
 ```
 
 ## The code
 
 ```python
-
 parser = SimpleSQLParser()
 q = "LOAD bigdata/project_list.csv AS (student_name: string, year: integer, cgpa:integer)"
 parser.parseQuery(q)
@@ -109,7 +108,7 @@ parser = SimpleSQLParser()
 parser.parseQuery(q)
 print(q)
 print(">",parser.getParsedQuery())
-q = "SELECT col1"
+q = "SELECT col1 Where a1 = 2 Or a2 = 3 And b = 4;"
 parser = SimpleSQLParser()
 parser.parseQuery(q, strict=True)
 print(q)

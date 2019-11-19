@@ -161,9 +161,9 @@ class SimpleSQLParser:
                             # Here, AND: {"a = b", "c = d"}
                             # OR = {"d = e"}
                             del clauses['AND'][index]
-                            clauses['AND'] = clauses['AND'] + or_clauses[0:1]
-                            del or_clauses[0]
-                            clauses['OR'] = clauses['OR'] + or_clauses
+                            clauses['AND'] = clauses['AND'] + or_clauses[1:]
+                            # del or_clauses[0] => Commented because (a or b and c) => a or (b and c)
+                            clauses['OR'] = clauses['OR'] + or_clauses[0:1]
                         elif len(or_clauses) > 2:
                             # If more than 2 elements,
                             # just append to OR array.
@@ -300,5 +300,3 @@ class SimpleSQLParser:
 
             # All went well, insert into main dictionary.
             self.DICTIONARY['column_types'] = columns
-
-
