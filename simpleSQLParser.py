@@ -21,7 +21,7 @@ class SimpleSQLParser:
         if syntax_to_be_checked is None and strict:
             if not self.QUERY.lower().strip(" ").endswith(";"):
                 return self.clearAndMakeError("Syntax error. [STRICT ON]")
-            elif self.QUERY.lower().strip(" ").endswith(";"):
+            else:
                 self.QUERY = self.QUERY[:-1]
         if syntax_to_be_checked is None or syntax_to_be_checked == "type":
             if not self.DICTIONARY['type'].lower() == "select" and not self.DICTIONARY['type'].lower() == "load":
