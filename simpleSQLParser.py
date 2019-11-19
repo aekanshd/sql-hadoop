@@ -41,6 +41,8 @@ class SimpleSQLParser:
     def checkSyntax(self, query, strict=False, syntax_to_be_checked=None):
         # Check if STRICT mode is ON => In which case, see if the
         # query ends with a semicolon (;)
+        if self.QUERY.lower().strip(" ").endswith(";") and not strict:
+            return self.clearAndMakeError("Use strict=True in parseQuery().")
         if syntax_to_be_checked is None and strict:
             if not self.QUERY.lower().strip(" ").endswith(";"):
                 return self.clearAndMakeError("Syntax error. [STRICT ON]")
@@ -51,7 +53,7 @@ class SimpleSQLParser:
         # Default check: Allow only SELECT/LOAD queries.
         if syntax_to_be_checked is None or syntax_to_be_checked == "type":
             if not self.DICTIONARY['type'].lower() == "select" and not self.DICTIONARY['type'].lower() == "load":
-                return self.clearAndMakeError("Supported only SELECT/UPDATE queries.")
+                return self.clearAndMakeError("Supported only SELECT/LOAD queries.")
 
         # Check if SELECT queries end with a comma
         if syntax_to_be_checked == "select_column_names":
@@ -86,7 +88,11 @@ class SimpleSQLParser:
                 if self.getSelectedColumnNames(self.QUERY):
                     # Get optional WHERE Clauses in a dictionary.
                     if self.getWHEREClauses(self.QUERY):
-                        print("Got WHERE clause.")
+                        return self.DICTIONARY
+            elif self.DICTIONARY['type'].lower() == "load":
+                # This is a load query, enter this flow.
+                if self.parseLOADDatabase(self.QUERY):
+                    return self.DICTIONARY
 
     """
         Function to define the WHERE clauses dictionary.
@@ -225,3 +231,68 @@ class SimpleSQLParser:
 
         # All went as expected, return with no error.
         return 1
+
+    """
+        Function to parse LOAD queries.
+    """
+
+    def parseLOADDatabase(self, query):
+        spaced_query = query.lower().split(" ")
+
+        # If there are only two words,
+        # We assume it is "LOAD database".
+        if len(spaced_query) == 2:
+            self.DICTIONARY['database'] = query.lower()[len("LOAD"):].strip(" ")
+            try:
+                idex = self.DICTIONARY['database'].index("/", 0)
+                return self.clearAndMakeError("No need to specify file name for just LOAD database.")
+            except ValueError:
+                return 1
+
+        else:
+            # Get the database name.
+            self.DICTIONARY['database'] = query.lower()[len("LOAD"):query.lower().index("/")].strip(" ")
+            # Get the CSV file name.
+            self.DICTIONARY['csv_file_name'] = query.lower()[query.lower().index("/") + 1:query.lower().index(" as")].strip(" ")
+
+            # Get the columns array string
+            # within the brackets.
+            column_array_string = query.lower()[query.lower().index(" as ", 0) + 4:].strip("(").strip(")")
+            columns_array = column_array_string.split(",")
+
+            # This is the columns array that will
+            # get added to the DICTIONARY.
+            columns = list()
+            for index in range(len(columns_array)):
+                # Strip the sentence of any extra spaces.
+                columns_array[index] = columns_array[index].strip(" ")
+
+                # Throw error if anything is empty.
+                if columns_array[index] == "":
+                    return self.checkSyntax("Incorrect syntax.")
+
+                # Extract key:value pair.
+                column_string = columns_array[index].split(":")
+
+                # Loop through each such pair array.
+                for second_index in range(len(column_string)):
+                    # Strip all spaces.
+                    # Ex => key:pair vs key: pair, etc
+                    column_string[second_index] = column_string[second_index].strip(" ")
+
+                    # Throw error if anything is empty.
+                    if column_string[second_index] == "":
+                        return self.checkSyntax("Incorrect syntax.")
+
+                # Make a columnn dictionary.
+                column = dict()
+
+                # Add name, and datatype for that column.
+                column['name'] = column_string[0]
+                column['datatype'] = column_string[1]
+
+                # Append this column to the columns array.
+                columns.append(column)
+
+            # All went well, insert into main dictionary.
+            self.DICTIONARY['column_types'] = columns
