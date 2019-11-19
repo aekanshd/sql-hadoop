@@ -21,12 +21,13 @@ class SimpleSQLParser:
         if syntax_to_be_checked is None and strict:
             if not self.QUERY.lower().strip(" ").endswith(";"):
                 return self.clearAndMakeError("Syntax error. [STRICT ON]")
+            elif self.QUERY.lower().strip(" ").endswith(";"):
+                self.QUERY = self.QUERY[:-1]
         if syntax_to_be_checked is None or syntax_to_be_checked == "type":
             if not self.DICTIONARY['type'].lower() == "select" and not self.DICTIONARY['type'].lower() == "load":
                 return self.clearAndMakeError("Supported only SELECT/UPDATE queries.")
         if syntax_to_be_checked == "select_column_names":
             if query.strip(" ").endswith(","):
-                print("\"" + query + "\"")
                 return self.clearAndMakeError("Incorrect Syntax. (incomplete column names)")
 
         return 1
@@ -49,6 +50,9 @@ class SimpleSQLParser:
         clauses['AND'] = list()
         clauses['OR'] = list()
 
+        if 'error' in self.DICTIONARY:
+            return 0
+
         try:
             len_where = len(query[:query.lower().index("where", len(self.DICTIONARY['type']))])
 
@@ -64,14 +68,19 @@ class SimpleSQLParser:
                 for index in range(len(clauses['AND'])):
                     clauses['AND'][index] = clauses['AND'][index].strip(" ")
                     or_clauses = clauses['AND'][index].lower().split(" or ")
-                    if len(or_clauses) > 2:
-                        del clauses['AND'][index]
-                        clauses['AND'] = clauses['AND'] + or_clauses[0:1]
-                        del or_clauses[0]
-                        clauses['OR'] = clauses['OR'] + or_clauses
-                    elif len(or_clauses) == 2:
-                        del clauses['AND'][index]
-                        clauses['OR'] = clauses['OR'] + or_clauses
+                    if len(clauses['AND']) == 1:
+                        clauses['AND'] = list()
+                        clauses['OR'] = or_clauses
+                    else:
+                        if len(or_clauses) == 2:
+                            del clauses['AND'][index]
+                            clauses['AND'] = clauses['AND'] + or_clauses[0:1]
+                            del or_clauses[0]
+                            clauses['OR'] = clauses['OR'] + or_clauses
+                        elif len(or_clauses) > 2:
+                            del clauses['AND'][index]
+                            clauses['OR'] = clauses['OR'] + or_clauses
+
                 for index in range(len(clauses['AND'])):
                     if clauses['AND'][index].endswith(";"):
                         clauses['AND'][index] = clauses['AND'][index][:len(clauses['AND'][index]) - 1]
@@ -112,3 +121,7 @@ class SimpleSQLParser:
 
         return 1
 
+q = "SELECT col1 WHERE col2 >= 3 OR col3 > 5;"
+parser = SimpleSQLParser()
+parser.parseQuery(q, strict=True)
+print(parser.getParsedQuery())
