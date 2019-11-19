@@ -141,8 +141,12 @@ class SimpleSQLParser:
                     # Just append them into OR array.
                     # Example: "... WHERE this = that OR that = this;"
                     if len(clauses['AND']) == 1:
-                        clauses['AND'] = list()
-                        clauses['OR'] = or_clauses
+                        if len(or_clauses) > 1:
+                            clauses['AND'] = list()
+                            clauses['OR'] = or_clauses
+                        else:
+                            clauses['AND'] = or_clauses
+                            clauses['OR'] = list()
                     else:
                         # This means we have either 0, or
                         # more than 2 elements.
@@ -296,3 +300,5 @@ class SimpleSQLParser:
 
             # All went well, insert into main dictionary.
             self.DICTIONARY['column_types'] = columns
+
+
