@@ -76,9 +76,15 @@ class SimpleSQLParser:
                     if clauses['AND'][index].endswith(";"):
                         clauses['AND'][index] = clauses['AND'][index][:len(clauses['AND'][index]) - 1]
 
+                    if len(clauses['AND'][index]) == 0:
+                        return self.clearAndMakeError("Incorrect Syntax.")
+
                 for index in range(len(clauses['OR'])):
                     if clauses['OR'][index].endswith(";"):
                         clauses['OR'][index] = clauses['OR'][index][:len(clauses['OR'][index]) - 1]
+
+                    if len(clauses['OR'][index]) == 0:
+                        return self.clearAndMakeError("Incorrect Syntax.")
 
         except ValueError:
             pass
@@ -92,7 +98,10 @@ class SimpleSQLParser:
         try:
             column_query = query[len_type:query.lower().index("from", len_type)]
         except ValueError:
-            column_query = query[len_type:query.lower().index("where", len_type)]
+            try:
+                column_query = query[len_type:query.lower().index("where", len_type)]
+            except ValueError:
+                column_query = query[len_type:]
         if self.checkSyntax(column_query, syntax_to_be_checked="select_column_names"):
             columns = column_query.strip(" ").split(",")
             self.DICTIONARY['columns'] = list()
@@ -102,3 +111,4 @@ class SimpleSQLParser:
                 self.DICTIONARY['columns'].append(columns[index].strip())
 
         return 1
+
