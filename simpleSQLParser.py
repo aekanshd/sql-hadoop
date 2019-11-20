@@ -38,17 +38,11 @@ class SimpleSQLParser:
         Function to check syntax of query.
     """
 
-    def checkSyntax(self, query, strict=False, syntax_to_be_checked=None):
+    def checkSyntax(self, query, syntax_to_be_checked=None):
         # Check if STRICT mode is ON => In which case, see if the
         # query ends with a semicolon (;)
-        if self.QUERY.lower().strip(" ").endswith(";") and not strict:
-            return self.clearAndMakeError("Use strict=True in parseQuery().")
-        if syntax_to_be_checked is None and strict:
-            if not self.QUERY.lower().strip(" ").endswith(";"):
-                return self.clearAndMakeError("Syntax error. [STRICT ON]")
-            else:
-                # If test passed, remove the ending semicolon (;)
-                self.QUERY = self.QUERY[:-1]
+        if self.QUERY.lower().strip(" ").endswith(";"):
+            self.QUERY = self.QUERY[:-1]
 
         # Default check: Allow only SELECT/LOAD queries.
         if syntax_to_be_checked is None or syntax_to_be_checked == "type":
@@ -75,13 +69,13 @@ class SimpleSQLParser:
         Function to parse the QUERY.
     """
 
-    def parseQuery(self, query, strict=False):
+    def parseQuery(self, query):
         # First, set the QUERY variable.
         self.addQuery(query)
         # Then, set the QUERY TYPE.
         self.parseQueryType()
         # Check if all default syntax tests pass.
-        if self.checkSyntax(self.QUERY, strict=strict):
+        if self.checkSyntax(self.QUERY):
             # If it is a SELECT query, then enter this flow.
             if self.DICTIONARY['type'].lower() == "select":
                 # Get selected Columns and their names in an array.

@@ -3,6 +3,8 @@ This project performs SQL operations on a CSV input in HDFS, using Hadoop's Map-
 
 ## How to use SimpleSQLParser
 
+**Note: This parser has been stripped down for simplicity and takes only AND with no logic attached. No syntax checking is done.** For a more elaborate version, check the `old-code` branch.
+
 Follow this short snippet, the function `parseQuery("Query")` parses the query, and then we can use `getParsedQuery()` which will return a dictionary of the parsed SQL.
 
 ```python

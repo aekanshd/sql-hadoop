@@ -103,7 +103,7 @@ print(q)
 print(">",parser.getParsedQuery())
 q = "SELECT col1 Where a1 = 2 And a2 = 3 And b = 4;"
 parser = SimpleSQLParser()
-parser.parseQuery(q, strict=True)
+parser.parseQuery(q)
 print(q)
 print(">",parser.getParsedQuery())
 ```
