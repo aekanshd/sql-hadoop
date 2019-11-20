@@ -103,7 +103,6 @@ class SimpleSQLParser:
     def getWHEREClauses(self, query):
         clauses = dict()
         clauses['AND'] = list()
-        clauses['OR'] = list()
 
         # Immediately exit if there is already an error.
         # TODO: Why does this condition arrive in the first place?
@@ -134,42 +133,6 @@ class SimpleSQLParser:
                     # Strip empty spaces from both ends.
                     clauses['AND'][index] = clauses['AND'][index].strip(" ")
 
-                    # Further divide the query using OR clause.
-                    or_clauses = clauses['AND'][index].lower().split(" or ")
-
-                    # If only ONE OR clause exists,
-                    # Just append them into OR array.
-                    # Example: "... WHERE this = that OR that = this;"
-                    if len(clauses['AND']) == 1:
-                        if len(or_clauses) > 1:
-                            clauses['AND'] = list()
-                            clauses['OR'] = or_clauses
-                        else:
-                            clauses['AND'] = or_clauses
-                            clauses['OR'] = list()
-                    else:
-                        # This means we have either 0, or
-                        # more than 2 elements.
-                        # (1 was already covered)
-                        if len(or_clauses) == 2:
-                            # If length is 2, then delete this
-                            # element in the AND array.
-                            # Add the left most bit to the
-                            # AND Array, and the remaining
-                            # in the OR Array.
-                            # Example: "... WHERE a = b AND c = d OR d = e;"
-                            # Here, AND: {"a = b", "c = d"}
-                            # OR = {"d = e"}
-                            del clauses['AND'][index]
-                            clauses['AND'] = clauses['AND'] + or_clauses[1:]
-                            # del or_clauses[0] => Commented because (a or b and c) => a or (b and c)
-                            clauses['OR'] = clauses['OR'] + or_clauses[0:1]
-                        elif len(or_clauses) > 2:
-                            # If more than 2 elements,
-                            # just append to OR array.
-                            del clauses['AND'][index]
-                            clauses['OR'] = clauses['OR'] + or_clauses
-
                 # This loop goes through every element of
                 # AND array, and strips their ";"s, and also
                 # checks for dummy elements: in which case
@@ -179,14 +142,6 @@ class SimpleSQLParser:
                         clauses['AND'][index] = clauses['AND'][index][:len(clauses['AND'][index]) - 1]
 
                     if len(clauses['AND'][index]) == 0:
-                        return self.clearAndMakeError("Incorrect Syntax.")
-
-                # Same loop as above, but for OR array.
-                for index in range(len(clauses['OR'])):
-                    if clauses['OR'][index].endswith(";"):
-                        clauses['OR'][index] = clauses['OR'][index][:len(clauses['OR'][index]) - 1]
-
-                    if len(clauses['OR'][index]) == 0:
                         return self.clearAndMakeError("Incorrect Syntax.")
 
         except ValueError:
