@@ -107,36 +107,30 @@ class SimpleSQLParser:
             # Check if there is WHERE clause.
             len_where = len(query[:query.lower().index("where", len(self.DICTIONARY['type']))])
 
-            try:
-                # Check if the query has any brackets,
-                # If yes - immediately raise an error.
-                bracket_open = query[len_where + 5:].index("(", 0)
-                bracket_close = query[len_where + 5:].index(")", 0)
+            # All basic tests passed, proceed to
+            # get the WHERE query.
+            clause_query = query[len_where + 5:]
 
-                return self.clearAndMakeError("This parser does not support brackets.")
-            except ValueError:
-                # All basic tests passed, proceed to
-                # get the WHERE query.
-                clause_query = query[len_where + 5:]
+            # Split the WHERE query based on ANDs.
+            clauses['AND'] = clause_query.lower().split(" and ")
 
-                # Split the WHERE query based on ANDs.
-                clauses['AND'] = clause_query.lower().split(" and ")
+            # Loop through each elements of the AND array.
+            for index in range(len(clauses['AND'])):
+                # Strip empty spaces from both ends.
+                clauses['AND'][index] = clauses['AND'][index].strip(" ")
 
-                # Loop through each elements of the AND array.
-                for index in range(len(clauses['AND'])):
-                    # Strip empty spaces from both ends.
-                    clauses['AND'][index] = clauses['AND'][index].strip(" ")
+            # This loop goes through every element of
+            # AND array, and strips their ";"s, and also
+            # checks for dummy elements: in which case
+            # exit, and show error.
+            for index in range(len(clauses['AND'])):
+                # If it ends with a semi colon (last condition)
+                # Then, remove it.
+                if clauses['AND'][index].endswith(";"):
+                    clauses['AND'][index] = clauses['AND'][index][:len(clauses['AND'][index]) - 1]
 
-                # This loop goes through every element of
-                # AND array, and strips their ";"s, and also
-                # checks for dummy elements: in which case
-                # exit, and show error.
-                for index in range(len(clauses['AND'])):
-                    if clauses['AND'][index].endswith(";"):
-                        clauses['AND'][index] = clauses['AND'][index][:len(clauses['AND'][index]) - 1]
-
-                    if len(clauses['AND'][index]) == 0:
-                        return self.clearAndMakeError("Incorrect Syntax.")
+                if len(clauses['AND'][index]) == 0:
+                    return self.clearAndMakeError("Incorrect Syntax.")
 
         except ValueError:
             # This condition happens when there is NO where clause.
