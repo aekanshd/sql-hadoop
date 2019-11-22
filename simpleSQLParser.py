@@ -83,7 +83,7 @@ class SimpleSQLParser:
                     # Get optional WHERE Clauses in a dictionary.
                     if self.getWHEREClauses(self.QUERY):
                         return self.DICTIONARY
-            elif self.DICTIONARY['type'].lower() == "load":
+            elif self.DICTIONARY['type'].lower().startswith("load"):
                 # This is a load query, enter this flow.
                 if self.parseLOADDatabase(self.QUERY):
                     return self.DICTIONARY
@@ -189,16 +189,17 @@ class SimpleSQLParser:
         # If there are only two words,
         # We assume it is "LOAD database".
         if len(spaced_query) == 2:
-            self.DICTIONARY['database'] = query.lower()[len("LOAD"):].strip(" ")
+            self.DICTIONARY['database'] = query.lower()[len("load"):].strip(" ")
             try:
                 idex = self.DICTIONARY['database'].index("/", 0)
                 return self.clearAndMakeError("No need to specify file name for just LOAD database.")
             except ValueError:
+                self.DICTIONARY['type'] = "load_existing"
                 return 1
 
         else:
             # Get the database name.
-            self.DICTIONARY['database'] = query.lower()[len("LOAD"):query.lower().index("/")].strip(" ")
+            self.DICTIONARY['database'] = query.lower()[len("load"):query.lower().index("/")].strip(" ")
             # Get the CSV file name.
             self.DICTIONARY['csv_file_name'] = query.lower()[query.lower().index("/") + 1:query.lower().index(" as")].strip(" ")
 
