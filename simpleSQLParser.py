@@ -46,7 +46,7 @@ class SimpleSQLParser:
 
         # Default check: Allow only SELECT/LOAD queries.
         if syntax_to_be_checked is None or syntax_to_be_checked == "type":
-            if not self.DICTIONARY['type'].lower() == "select" and not self.DICTIONARY['type'].lower() == "load":
+            if not self.DICTIONARY['type'].lower() == "select" and not self.DICTIONARY['type'].lower().startswith("load"):
                 return self.clearAndMakeError("Supported only SELECT/LOAD queries.")
 
         # Check if SELECT queries end with a comma
@@ -62,7 +62,7 @@ class SimpleSQLParser:
     """
 
     def parseQueryType(self):
-        type_of_query = self.QUERY.split(" ")[0]
+        type_of_query = self.QUERY.split(" ")[0].lower()
         self.DICTIONARY['type'] = type_of_query
 
     """
@@ -96,7 +96,7 @@ class SimpleSQLParser:
 
     def getWHEREClauses(self, query):
         clauses = dict()
-        clauses['AND'] = list()
+        clauses['and'] = list()
 
         # Immediately exit if there is already an error.
         # TODO: Why does this condition arrive in the first place?
@@ -112,24 +112,24 @@ class SimpleSQLParser:
             clause_query = query[len_where + 5:]
 
             # Split the WHERE query based on ANDs.
-            clauses['AND'] = clause_query.lower().split(" and ")
+            clauses['and'] = clause_query.lower().split(" and ")
 
             # Loop through each elements of the AND array.
-            for index in range(len(clauses['AND'])):
+            for index in range(len(clauses['and'])):
                 # Strip empty spaces from both ends.
-                clauses['AND'][index] = clauses['AND'][index].strip(" ")
+                clauses['and'][index] = clauses['and'][index].strip(" ")
 
             # This loop goes through every element of
             # AND array, and strips their ";"s, and also
             # checks for dummy elements: in which case
             # exit, and show error.
-            for index in range(len(clauses['AND'])):
+            for index in range(len(clauses['and'])):
                 # If it ends with a semi colon (last condition)
                 # Then, remove it.
-                if clauses['AND'][index].endswith(";"):
-                    clauses['AND'][index] = clauses['AND'][index][:len(clauses['AND'][index]) - 1]
+                if clauses['and'][index].endswith(";"):
+                    clauses['and'][index] = clauses['and'][index][:len(clauses['and'][index]) - 1]
 
-                if len(clauses['AND'][index]) == 0:
+                if len(clauses['and'][index]) == 0:
                     return self.clearAndMakeError("Incorrect Syntax.")
 
         except ValueError:
@@ -139,7 +139,7 @@ class SimpleSQLParser:
 
         # Everything went as expected, add dictionary
         # to the array.
-        self.DICTIONARY['CLAUSES'] = clauses
+        self.DICTIONARY['clauses'] = clauses
         return 1
 
     def getSelectedColumnNames(self, query):
