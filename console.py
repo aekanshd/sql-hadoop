@@ -53,6 +53,7 @@ class Console:
     """
         Function to clear the console screen.
     """ 
+
     def clear(self): 
     
         # for windows 
@@ -67,6 +68,7 @@ class Console:
         Function to make a new schema and write
         it to the hdfs.
     """
+
     def makeSchema(self):
         return 0
 
@@ -74,6 +76,7 @@ class Console:
         Function to check if the new DB exists,
         if not, then creates one.
     """
+
     def checkAndChangeDB(self):
         if('type' in self.parsed_query and self.parsed_query['type'].startswith("load") and (self.database != self.parsed_query['database'] or self.parsed_query['type'] == "load")):
             self.database = self.parsed_query['database']
@@ -93,9 +96,11 @@ class Console:
                     self.database = None
                 elif self.parsed_query['type'] == "load_existing":
                     print("Switched to database:", self.database)
+    
     """
         Main function to parse the given query.
     """
+
     def parseQuery(self):
         if 'error' in self.parsed_query:
             print("ERROR:", self.parsed_query['error'])
@@ -107,11 +112,12 @@ class Console:
         Function to continuously display prompt,
         and get queries.
     """
+    
     def start(self):
         if self.home_dir is None:
             print("No hdfs HOME DIR specified. Exiting.")
             sys.exit(1)
-            
+
         self.clear()
         print("==========")
         welcome = "Welcome to Simple SQL Engine!\nWe use map-reduce to do simple\ncalculations and parse SQL queries.\n\n\n1. \"clear\" or \"cls\" to clear the screen.\n2. \"\\q\" to quit."
