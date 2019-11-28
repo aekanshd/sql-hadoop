@@ -15,6 +15,7 @@ class SimpleSQLParser:
     """
 
     def addQuery(self, query):
+        self.__init__()
         self.QUERY = query
 
     """
