@@ -70,6 +70,12 @@ class Console:
     """
 
     def makeSchema(self):
+        # This function should go through
+        # each column of the LOAD query,
+        # and make it into this format:
+        # col_name  | col_type  | col_index | col_location
+        # "example" | "int"     | 0         | home_dir+"/"+col_name+".format"
+  
         return 0
 
     """
