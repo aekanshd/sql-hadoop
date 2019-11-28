@@ -1,4 +1,4 @@
-# sql-hadoop
+# Simple SQL Engine with Hadoop
 This project performs SQL operations on a CSV input in HDFS, using Hadoop's Map-Reduce. 
 
 ## How to Start
