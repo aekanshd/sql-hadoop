@@ -142,7 +142,11 @@ class SimpleSQLParser:
         # to the array.
         self.DICTIONARY['clauses'] = clauses
         return 1
-
+    
+    """
+        Function to get column names.
+    """
+    
     def getSelectedColumnNames(self, query):
         columns = list()
         len_type = len(self.DICTIONARY['type'])
