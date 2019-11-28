@@ -1,6 +1,20 @@
 # sql-hadoop
 This project performs SQL operations on a CSV input in HDFS, using Hadoop's Map-Reduce. 
 
+## How to Start
+We have a console hosted at `console.py`. In order to begin, please make sure you have the current directory as a working directory.
+
+```python
+import sys, os
+sys.path.insert(0, os.getcwd())
+
+from console import Console
+from simpleSQLParser import SimpleSQLParser
+
+console = Console(SimpleSQLParser())
+console.start()
+```
+
 ## How to use SimpleSQLParser
 
 **Note: This parser has been stripped down for simplicity and takes only AND with no logic attached. No syntax checking is done.** For a more elaborate version, check the `old-code` branch.
