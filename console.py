@@ -1,4 +1,6 @@
-from os import system, name 
+from os import system, name
+import sys
+import subprocess
 
 class Console:
     parser = None
@@ -6,14 +8,47 @@ class Console:
     database = None
     parsed_query = None
 
+    debug = None
+    home_dir = None
+
     """
         Constructor function.
         Optional: Provide Parser
     """
 
-    def __init__(self, parser=parser):
+    def __init__(self, parser=parser, debug=False):
         self.parser = parser or SimpleSQLParser()
         self.our_name = "bd-sql-parser"
+        self.debug = debug
+
+    """
+        Logger Functon.
+    """
+
+    def log(self, *what):
+        if self.debug: 
+            for i in range(0, len(what)):
+                print(what[i], end=" ")
+            print()
+
+    """
+        Function to set default home path.
+    """
+
+    def setHomeDir(self, path):
+        print("Setting home path:", path)
+        self.home_dir = path
+        print("Checking if path exists...")
+        put = subprocess.call(["hdfs dfs -test -e " + self.home_dir], shell=True)
+        if int(put):
+            print("Making a new path...")
+            put = subprocess.call(["hdfs dfs -mkdir " + self.home_dir], shell=True)
+            print("Testing if path was created...")
+            put = subprocess.call(["hdfs dfs -test -e " + self.home_dir], shell=True)
+            if not int(put):
+                print("There was an error making the home directory.")
+                sys.exit(1)
+            print("Path created succesfully. Let's Go!")
 
     """
         Function to clear the console screen.
@@ -28,31 +63,44 @@ class Console:
         else: 
             _ = system('clear')
 
-
     """
-        Function to change the database.
+        Function to make a new schema and write
+        it to the hdfs.
     """
-    def checkAndChangeDB(self):
-        # Only change DB if:
-        # 1. Type == "load"
-        # 2. Current DB Name != New DB Name
-        if('type' in self.parsed_query and self.parsed_query['type'].startswith("load") and self.database != self.parsed_query['database']):
-            self.database = self.parsed_query['database']
-            self.checkNewDB()
+    def makeSchema(self):
+        return 0
 
     """
         Function to check if the new DB exists,
         if not, then creates one.
     """
-    def checkNewDB(self):
-        # Code to check for new database.
-        pass
-
+    def checkAndChangeDB(self):
+        if('type' in self.parsed_query and self.parsed_query['type'].startswith("load") and (self.database != self.parsed_query['database'] or self.parsed_query['type'] == "load")):
+            self.database = self.parsed_query['database']
+            put = subprocess.call(["hdfs dfs -test -e " + self.home_dir + "/" + self.database + ".json"], shell=True)
+            if int(put):
+                if self.parsed_query['type'] == "load_existing":
+                    print("ERROR: Database does not exist.")
+                    self.database = None
+                elif self.parsed_query['type'] == "load":
+                    if self.makeSchema():
+                        print("New database created.")
+                    else:
+                        print("ERROR: Database could not be made.")
+            else:
+                if self.parsed_query['type'] == "load":
+                    print("ERROR: Database already exists.")
+                    self.database = None
+                elif self.parsed_query['type'] == "load_existing":
+                    print("Switched to database:", self.database)
     """
         Main function to parse the given query.
     """
     def parseQuery(self):
-        self.checkAndChangeDB()
+        if 'error' in self.parsed_query:
+            print("ERROR:", self.parsed_query['error'])
+        else:
+            self.checkAndChangeDB()
 
 
     """
@@ -60,6 +108,10 @@ class Console:
         and get queries.
     """
     def start(self):
+        if self.home_dir is None:
+            print("No hdfs HOME DIR specified. Exiting.")
+            sys.exit(1)
+            
         self.clear()
         print("==========")
         welcome = "Welcome to Simple SQL Engine!\nWe use map-reduce to do simple\ncalculations and parse SQL queries.\n\n\n1. \"clear\" or \"cls\" to clear the screen.\n2. \"\\q\" to quit."
@@ -76,4 +128,5 @@ class Console:
                 break
             self.parser.parseQuery(query)
             self.parsed_query = self.parser.getParsedQuery()
+            self.log(self.parsed_query)
             self.parseQuery()

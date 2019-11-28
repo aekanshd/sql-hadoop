@@ -4,5 +4,8 @@ sys.path.insert(0, os.getcwd())
 from console import Console
 from simpleSQLParser import SimpleSQLParser
 
-console = Console(SimpleSQLParser())
+home_dir = "/BD_649_692_1744_1808"
+
+console = Console(SimpleSQLParser(), debug=False)
+console.setHomeDir(home_dir)
 console.start()
