@@ -45,11 +45,12 @@ class Console:
             put = subprocess.call(["hdfs dfs -mkdir " + self.home_dir], shell=True)
             print("Testing if path was created...")
             put = subprocess.call(["hdfs dfs -test -e " + self.home_dir], shell=True)
-            if not int(put):
+            if int(put):
                 print("There was an error making the home directory.")
                 sys.exit(1)
             print("Path created succesfully. Let's Go!")
-
+        else:
+            print("Home directory exists. Let's Go!")
     """
         Function to clear the console screen.
     """ 
@@ -110,6 +111,8 @@ class Console:
     def parseQuery(self):
         if 'error' in self.parsed_query:
             print("ERROR:", self.parsed_query['error'])
+        elif self.database is None:
+            print("ERROR: No database active.")
         else:
             self.checkAndChangeDB()
 
