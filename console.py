@@ -76,6 +76,8 @@ class Console:
         # and make it into this format:
         # col_name  | col_type  | col_index | col_location
         # "example" | "int"     | 0         | home_dir+"/"+col_name+".format"
+
+
   
         return 0
 
@@ -111,7 +113,7 @@ class Console:
     def parseQuery(self):
         if 'error' in self.parsed_query:
             print("ERROR:", self.parsed_query['error'])
-        elif self.database is None:
+        elif self.database is None and not self.parsed_query['type'].startswith("load"):
             print("ERROR: No database active.")
         else:
             self.checkAndChangeDB()
