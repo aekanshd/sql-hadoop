@@ -1,21 +1,23 @@
 class SimpleSQLParser:
     QUERY = None
     DICTIONARY = None
+    strict = None
 
     """
         Constructor Function.
     """
 
-    def __init__(self):
+    def __init__(self, strict=False):
         self.QUERY = None
         self.DICTIONARY = dict()
+        self.strict = strict
 
     """
         Setter function for QUERY.
     """
 
     def addQuery(self, query):
-        self.__init__()
+        self.__init__(strict=self.strict)
         self.QUERY = query
 
     """
@@ -42,8 +44,14 @@ class SimpleSQLParser:
     def checkSyntax(self, query, syntax_to_be_checked=None):
         # Check if STRICT mode is ON => In which case, see if the
         # query ends with a semicolon (;)
-        if self.QUERY.lower().strip(" ").endswith(";"):
-            self.QUERY = self.QUERY[:-1]
+        if self.QUERY.lower().strip(" ").endswith(";") and not self.strict:
+            return self.clearAndMakeError("Please enable strict mode.")
+        if syntax_to_be_checked is None and self.strict:
+            if not self.QUERY.lower().strip(" ").endswith(";"):
+                return self.clearAndMakeError("Syntax error. [STRICT ON]")
+            else:
+                # If test passed, remove the ending semicolon (;)
+                self.QUERY = self.QUERY[:-1]
 
         # Default check: Allow only SELECT/LOAD queries.
         if syntax_to_be_checked is None or syntax_to_be_checked == "type":
@@ -71,6 +79,9 @@ class SimpleSQLParser:
     """
 
     def parseQuery(self, query):
+        # If no query, silently return
+        if query == "":
+            return self.clearAndMakeError("Please enter a query.")
         # First, set the QUERY variable.
         self.addQuery(query)
         # Then, set the QUERY TYPE.
@@ -98,6 +109,7 @@ class SimpleSQLParser:
     def getWHEREClauses(self, query):
         clauses = dict()
         clauses['and'] = list()
+        clauses['or'] = list()
 
         # Immediately exit if there is already an error.
         # TODO: Why does this condition arrive in the first place?
@@ -108,30 +120,80 @@ class SimpleSQLParser:
             # Check if there is WHERE clause.
             len_where = len(query[:query.lower().index("where", len(self.DICTIONARY['type']))])
 
-            # All basic tests passed, proceed to
-            # get the WHERE query.
-            clause_query = query[len_where + 5:]
+            try:
+                # Check if the query has any brackets,
+                # If yes - immediately raise an error.
+                bracket_open = query[len_where + 5:].index("(", 0)
+                bracket_close = query[len_where + 5:].index(")", 0)
 
-            # Split the WHERE query based on ANDs.
-            clauses['and'] = clause_query.lower().split(" and ")
+                return self.clearAndMakeError("This parser does not support brackets.")
+            except ValueError:
+                # All basic tests passed, proceed to
+                # get the WHERE query.
+                clause_query = query[len_where + 5:]
 
-            # Loop through each elements of the AND array.
-            for index in range(len(clauses['and'])):
-                # Strip empty spaces from both ends.
-                clauses['and'][index] = clauses['and'][index].strip(" ")
+                # Split the WHERE query based on ANDs.
+                clauses['and'] = clause_query.lower().split(" and ")
 
-            # This loop goes through every element of
-            # AND array, and strips their ";"s, and also
-            # checks for dummy elements: in which case
-            # exit, and show error.
-            for index in range(len(clauses['and'])):
-                # If it ends with a semi colon (last condition)
-                # Then, remove it.
-                if clauses['and'][index].endswith(";"):
-                    clauses['and'][index] = clauses['and'][index][:len(clauses['and'][index]) - 1]
+                # Loop through each elements of the AND array.
+                for index in range(len(clauses['and'])):
+                    # Strip empty spaces from both ends.
+                    clauses['and'][index] = clauses['and'][index].strip(" ")
 
-                if len(clauses['and'][index]) == 0:
-                    return self.clearAndMakeError("Incorrect Syntax.")
+                    # Further divide the query using OR clause.
+                    or_clauses = clauses['and'][index].lower().split(" or ")
+
+                    # If only ONE OR clause exists,
+                    # Just append them into OR array.
+                    # Example: "... WHERE this = that OR that = this;"
+                    if len(clauses['and']) == 1:
+                        if len(or_clauses) > 1:
+                            clauses['and'] = list()
+                            clauses['or'] = or_clauses
+                        else:
+                            clauses['and'] = or_clauses
+                            clauses['or'] = list()
+                    else:
+                        # This means we have either 0, or
+                        # more than 2 elements.
+                        # (1 was already covered)
+                        if len(or_clauses) == 2:
+                            # If length is 2, then delete this
+                            # element in the AND array.
+                            # Add the left most bit to the
+                            # AND Array, and the remaining
+                            # in the OR Array.
+                            # Example: "... WHERE a = b AND c = d OR d = e;"
+                            # Here, AND: {"a = b", "c = d"}
+                            # OR = {"d = e"}
+                            del clauses['and'][index]
+                            clauses['and'] = clauses['and'] + or_clauses[1:]
+                            # del or_clauses[0] => Commented because (a or b and c) => a or (b and c)
+                            clauses['or'] = clauses['or'] + or_clauses[0:1]
+                        elif len(or_clauses) > 2:
+                            # If more than 2 elements,
+                            # just append to OR array.
+                            del clauses['and'][index]
+                            clauses['or'] = clauses['or'] + or_clauses
+
+                # This loop goes through every element of
+                # AND array, and strips their ";"s, and also
+                # checks for dummy elements: in which case
+                # exit, and show error.
+                for index in range(len(clauses['and'])):
+                    if clauses['and'][index].endswith(";"):
+                        clauses['and'][index] = clauses['and'][index][:len(clauses['and'][index]) - 1]
+
+                    if len(clauses['and'][index]) == 0:
+                        return self.clearAndMakeError("Incorrect Syntax.")
+
+                # Same loop as above, but for OR array.
+                for index in range(len(clauses['or'])):
+                    if clauses['or'][index].endswith(";"):
+                        clauses['or'][index] = clauses['or'][index][:len(clauses['or'][index]) - 1]
+
+                    if len(clauses['or'][index]) == 0:
+                        return self.clearAndMakeError("Incorrect Syntax.")
 
         except ValueError:
             # This condition happens when there is NO where clause.
@@ -142,11 +204,11 @@ class SimpleSQLParser:
         # to the array.
         self.DICTIONARY['clauses'] = clauses
         return 1
-    
+
     """
-        Function to get column names.
+        Function to get column names.	
     """
-    
+
     def getSelectedColumnNames(self, query):
         columns = list()
         len_type = len(self.DICTIONARY['type'])
@@ -195,6 +257,10 @@ class SimpleSQLParser:
         # We assume it is "LOAD database".
         if len(spaced_query) == 2:
             self.DICTIONARY['database'] = query.lower()[len("load"):].strip(" ")
+            
+            if self.DICTIONARY['database'] == "":
+                return self.clearAndMakeError("Syntax error.")
+
             try:
                 idex = self.DICTIONARY['database'].index("/", 0)
                 return self.clearAndMakeError("No need to specify file name for just LOAD database.")
@@ -205,12 +271,23 @@ class SimpleSQLParser:
         else:
             # Get the database name.
             self.DICTIONARY['database'] = query.lower()[len("load"):query.lower().index("/")].strip(" ")
+            
+            if self.DICTIONARY['database'] == "":
+                return self.clearAndMakeError("Incorrect Syntax. (incomplete database name)")
+
             # Get the CSV file name.
             self.DICTIONARY['csv_file_name'] = query.lower()[query.lower().index("/") + 1:query.lower().index(" as")].strip(" ")
 
+            if self.DICTIONARY['csv_file_name'] == "":
+                return self.clearAndMakeError("Incorrect Syntax. (incomplete file name)")
+                
             # Get the columns array string
             # within the brackets.
-            column_array_string = query.lower()[query.lower().index(" as ", 0) + 4:].strip("(").strip(")")
+            try:
+                column_array_string = query.lower()[query.lower().index(" as ", 0) + 4:].strip("(").strip(")")
+            except ValueError:
+                return self.clearAndMakeError("Incomplete LOAD query.")
+
             columns_array = column_array_string.split(",")
 
             # This is the columns array that will
@@ -222,7 +299,7 @@ class SimpleSQLParser:
 
                 # Throw error if anything is empty.
                 if columns_array[index] == "":
-                    return self.checkSyntax("Incorrect syntax.")
+                    return self.clearAndMakeError("Incorrect syntax.")
 
                 # Extract key:value pair.
                 column_string = columns_array[index].split(":")
@@ -235,7 +312,7 @@ class SimpleSQLParser:
 
                     # Throw error if anything is empty.
                     if column_string[second_index] == "":
-                        return self.checkSyntax("Incorrect syntax.")
+                        return self.clearAndMakeError("Incorrect syntax.")
 
                 # Make a columnn dictionary.
                 column = dict()
@@ -249,3 +326,6 @@ class SimpleSQLParser:
 
             # All went well, insert into main dictionary.
             self.DICTIONARY['column_types'] = columns
+
+            if 'column_types' not in self.DICTIONARY:
+                self.clearAndMakeError("Incomplete query.")

@@ -17,7 +17,7 @@ class Console:
     """
 
     def __init__(self, parser=None, debug=False):
-        self.parser = parser or SimpleSQLParser()
+        self.parser = parser or SimpleSQLParser(strict=False)
         self.our_name = "bd-sql-parser"
         self.debug = debug
 
