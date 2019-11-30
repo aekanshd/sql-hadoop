@@ -108,7 +108,7 @@ class Console:
                     print("Switched to database:", self.database)
     
     """
-        Main function to parse the given query.
+        Main function to execute the given query.
     """
 
     def runQuery(self):
