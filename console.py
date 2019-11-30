@@ -111,7 +111,7 @@ class Console:
         Main function to parse the given query.
     """
 
-    def parseQuery(self):
+    def runQuery(self):
         if 'error' in self.parsed_query:
             print("ERROR:", self.parsed_query['error'])
         elif self.database is None and not self.parsed_query['type'].startswith("load"):
@@ -139,6 +139,8 @@ class Console:
         print()
         while 1:
             query = input((self.database or "home") + "@" + self.our_name + "$ ")
+            if query.strip(" ") == "":
+                continue
             if query == "clear" or query == "cls":
                 self.clear()
                 continue
@@ -147,4 +149,4 @@ class Console:
             self.parser.parseQuery(query)
             self.parsed_query = self.parser.getParsedQuery()
             self.log(self.parsed_query)
-            self.parseQuery()
+            self.runQuery()
