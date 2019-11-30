@@ -1,11 +1,13 @@
 from os import system, name
 import sys
 import subprocess
+import json
 
 class Console:
     parser = None
     our_name = None
     database = None
+    schema = None
     parsed_query = None
 
     debug = None
@@ -32,6 +34,23 @@ class Console:
             print()
 
     """
+        Function to run a system command.
+    """
+
+    def runCommand(self, cmd):
+        self.log("Ran Command:", cmd)
+        return subprocess.call([cmd], shell=True)
+
+    """
+        Function to check if path exists on HDFS.
+        Returns 1 if path exists, else 0.
+    """
+
+    def checkIfExistsOnHDFS(self, path):
+        test = self.runCommand("hdfs dfs -test -e " + path)
+        return 0 if int(test) else 1
+
+    """
         Function to set default home path.
     """
 
@@ -39,18 +58,17 @@ class Console:
         print("Setting home path:", path)
         self.home_dir = path
         print("Checking if path exists...")
-        put = subprocess.call(["hdfs dfs -test -e " + self.home_dir], shell=True)
-        if int(put):
+        if not self.checkIfExistsOnHDFS(self.home_dir):
             print("Making a new path...")
-            put = subprocess.call(["hdfs dfs -mkdir " + self.home_dir], shell=True)
+            self.runCommand("hdfs dfs -mkdir " + self.home_dir)
             print("Testing if path was created...")
-            put = subprocess.call(["hdfs dfs -test -e " + self.home_dir], shell=True)
-            if int(put):
+            if not self.checkIfExistsOnHDFS(self.home_dir):
                 print("There was an error making the home directory.")
-                sys.exit(1)
+                # sys.exit(1)
             print("Path created succesfully. Let's Go!")
         else:
             print("Home directory exists. Let's Go!")
+    
     """
         Function to clear the console screen.
     """ 
@@ -71,15 +89,33 @@ class Console:
     """
 
     def makeSchema(self):
-        # This function should go through
-        # each column of the LOAD query,
-        # and make it into this format:
-        # col_name  | col_type  | col_index | col_location
-        # "example" | "int"     | 0         | home_dir+"/"+col_name+".format"
+        db_file_name = self.database + ".json"
+        
+        if not self.checkIfExistsOnHDFS(self.home_dir + "/" + db_file_name):
+            for index in range(len(self.parsed_query['column_types'])):
+                self.parsed_query['column_types'][index]['index'] = index
 
+            with open(db_file_name,"w") as f:
+                f.write(json.dumps(self.parsed_query))
+    
+            self.runCommand("hdfs dfs -put " + db_file_name + " " + self.home_dir)
 
-  
-        return 0
+            if self.checkIfExistsOnHDFS(self.home_dir + "/" + db_file_name):
+                self.runCommand("rm " + db_file_name)
+                self.runCommand("hdfs dfs -put " + self.parsed_query['csv_file_name'] + " " + self.home_dir)
+                if self.checkIfExistsOnHDFS(self.home_dir + "/" + self.parsed_query['csv_file_name']):
+                    self.schema = self.parsed_query
+                    return 1
+                else:
+                    self.log("Could not transfer csv to HDFS.")
+                    return 0
+            else:
+                self.log("Could not transfer database to HDFS.")
+                return 0
+        else:
+            print("ERROR: Database already exists. Use only LOAD to switch.")
+            self.database = None
+            return 0
 
     """
         Function to check if the new DB exists,
@@ -89,8 +125,8 @@ class Console:
     def checkAndChangeDB(self):
         if('type' in self.parsed_query and self.parsed_query['type'].startswith("load") and (self.database != self.parsed_query['database'] or self.parsed_query['type'] == "load")):
             self.database = self.parsed_query['database']
-            put = subprocess.call(["hdfs dfs -test -e " + self.home_dir + "/" + self.database + ".json"], shell=True)
-            if int(put):
+
+            if not self.checkIfExistsOnHDFS(self.home_dir + "/" + self.database + ".json"):
                 if self.parsed_query['type'] == "load_existing":
                     print("ERROR: Database does not exist.")
                     self.database = None
@@ -105,6 +141,7 @@ class Console:
                     print("ERROR: Database already exists.")
                     self.database = None
                 elif self.parsed_query['type'] == "load_existing":
+                    self.schema = json.loads(self.runCommand("hdfs dfs -cat " + self.home_dir + "/" + self.database + ".json"))
                     print("Switched to database:", self.database)
     
     """
