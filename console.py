@@ -98,6 +98,7 @@ class Console:
                     if self.makeSchema():
                         print("New database created.")
                     else:
+                        self.database = None
                         print("ERROR: Database could not be made.")
             else:
                 if self.parsed_query['type'] == "load":
