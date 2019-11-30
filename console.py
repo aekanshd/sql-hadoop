@@ -64,7 +64,7 @@ class Console:
             print("Testing if path was created...")
             if not self.checkIfExistsOnHDFS(self.home_dir):
                 print("There was an error making the home directory.")
-                # sys.exit(1)
+                sys.exit(1)
             print("Path created succesfully. Let's Go!")
         else:
             print("Home directory exists. Let's Go!")
