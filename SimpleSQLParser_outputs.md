@@ -55,6 +55,16 @@ SELECT col1 WHERE (col1 = 2 OR col2= 1) AND col3 =3
 > {'error': 'This parser does not support brackets.'}
 SELECT col1 Where a1 = 2 Or a2 = 3 And b = 4;
 > {'type': 'select', 'columns': ['col1'], 'clauses': {'and': ['b = 4', 'a2 = 3'], 'or': ['a1 = 2']}}
+SELECT COUNT(col1), col2
+> {'type': 'select', 'columns': ['agg_column', 'col2'], 'clauses': {'and': [], 'or': []}, 'aggregate': 'count', 'agg_column': 'col1'}
+SELECT COUNT(), col2
+> {'error': 'Incomplete aggregate function.'}
+SELECT (col1), col2
+> {'error': 'Incomplete aggregate function.'}
+SELECT SUM(col1), col2
+> {'type': 'select', 'columns': ['agg_column', 'col2'], 'clauses': {'and': [], 'or': []}, 'aggregate': 'sum', 'agg_column': 'col1'}
+SELECT AVG(col1), col1, col2
+> {'type': 'select', 'columns': ['agg_column', 'col1', 'col2'], 'clauses': {'and': [], 'or': []}, 'aggregate': 'avg', 'agg_column': 'col1'}
 ```
 
 ## The code
@@ -190,6 +200,31 @@ print(">",parser.getParsedQuery())
 
 q = "SELECT col1 Where a1 = 2 Or a2 = 3 And b = 4;"
 parser = SimpleSQLParser(strict=True)
+parser.parseQuery(q)
+print(q)
+print(">",parser.getParsedQuery())
+
+q = "SELECT COUNT(col1), col2"
+parser.parseQuery(q)
+print(q)
+print(">",parser.getParsedQuery())
+
+q = "SELECT COUNT(), col2"
+parser.parseQuery(q)
+print(q)
+print(">",parser.getParsedQuery())
+
+q = "SELECT (col1), col2"
+parser.parseQuery(q)
+print(q)
+print(">",parser.getParsedQuery())
+
+q = "SELECT SUM(col1), col2"
+parser.parseQuery(q)
+print(q)
+print(">",parser.getParsedQuery())
+
+q = "SELECT AVG(col1), col1, col2"
 parser.parseQuery(q)
 print(q)
 print(">",parser.getParsedQuery())
