@@ -1,8 +1,12 @@
 import sys
+import json
+
+#rough_schema = {'type': 'load', 'database': 'bigdata', 'csv_file_name': 'project_list.csv', 'column_types': [{'name': 'batsman', 'datatype': 'string'}, {'name': 'bowler', 'datatype': 'string'}, {'name': 'wickets', 'datatype': 'integer'}, {'name': 'runs', 'datatype': 'integer'}], 'aggregate': 'avg', 'agg_columns': 'student_name'}
+#query = {'type': 'select', 'aggregate': None, 'agg_columns': None, 'columns': ['batsman'], 'clauses': {'and': [], 'or': []}}
 
 
-rough_schema = {'type': 'load', 'database': 'bigdata', 'csv_file_name': 'project_list.csv', 'column_types': [{'name': 'batsman', 'datatype': 'string'}, {'name': 'bowler', 'datatype': 'string'}, {'name': 'wickets', 'datatype': 'integer'}, {'name': 'runs', 'datatype': 'integer'}], 'aggregate': 'avg', 'agg_columns': 'student_name'}
-query = {'type': 'select', 'aggregate': None, 'agg_columns': None, 'columns': ['batsman'], 'clauses': {'and': [], 'or': []}}
+rough_schema = json.loads(sys.argv[1])
+query = json.loads(sys.argv[2])
 
 
 #'wickets = 5', 'runs = 29'
@@ -10,7 +14,7 @@ query = {'type': 'select', 'aggregate': None, 'agg_columns': None, 'columns': ['
 schema_cols = [rough_schema['column_types'][i]['name'] for i in range(0,len(rough_schema['column_types']))]
 query_cols = query['columns']
 query_and = query['clauses']['or']
-query_agg = query['agg_columns']
+query_agg = query['agg_column']
 get_col_nums, get_col_nums1, get_col_nums2 = {}, {}, {}
 get_col_nums_list, get_col_nums_list1, get_col_nums_list2 = [], [], []
 #get_col_nums = [get_col_nums.append(int(schema_cols.index(str(query_cols[i])))) for i in range(len(query_cols))]
@@ -100,17 +104,17 @@ else:
 
 
 
-    '''if(query['aggregate'] is None):
+    if(query['aggregate'] is None):
         key = select_columns
         value = [ query['type'], get_column_num(query_cols, schema_cols, 0, query_and), c ]
         key, value = str(key), str(value)          
-        print('%s:%s' % (key, value))'''
+        print('%s:%s' % (key, value))
 
-
-    key = select_columns
-    value = [ query['type'], get_column_num(query_cols, schema_cols, 0, query_and), c]
-    key, value = str(key), str(value)            
-    print('%s:%s' % (key, value))
+    if(query['aggregate'] is not None): 
+        key = select_columns
+        value = [ query['type'], query['agg_columns'], get_column_num(query_cols, schema_cols, 2, query_and)]
+        key, value = str(key), str(value)            
+        print('%s:%s' % (key, value))
 
     
 
