@@ -67,6 +67,8 @@ SELECT AVG(col1), col1, col2
 > {'type': 'select', 'columns': ['agg_column', 'col1', 'col2'], 'clauses': {'and': [], 'or': []}, 'aggregate': 'avg', 'agg_column': 'col1'}
 SELECT AVG(col1), SUM(col2) WHERE col1 > 3
 > {'error': 'Only one aggregate function allowed.'}
+SELECT AVG(col1) WHERE col1 > 3
+> {'type': 'select', 'columns': ['agg_column'], 'clauses': {'and': ['col1 > 3'], 'or': []}, 'aggregate': 'avg', 'agg_column': 'col1'}
 ```
 
 ## The code
@@ -232,6 +234,11 @@ print(q)
 print(">",parser.getParsedQuery())
 
 q = "SELECT AVG(col1), SUM(col2) WHERE a > 3"
+parser.parseQuery(q)
+print(q)
+print(">",parser.getParsedQuery())
+
+q = "SELECT AVG(col1) WHERE col1 > 3"
 parser.parseQuery(q)
 print(q)
 print(">",parser.getParsedQuery())
