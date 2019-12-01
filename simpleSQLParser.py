@@ -396,7 +396,16 @@ class SimpleSQLParser:
 
                     # Only replace original column name if agg_column is NOT empty.
                     if self.DICTIONARY['agg_column'] is not None:
-                        self.DICTIONARY['columns'][i] = "agg_column" 
+                        self.DICTIONARY['columns'][i] = "agg_column"
+
+                        # Only allow ONE aggregate function.
+                        found = 0
+                        for col in range(len(self.DICTIONARY['columns'])):
+                            if self.DICTIONARY['columns'][col] == "agg_column":
+                                found = found + 1 
+                        
+                        if found > 1:
+                            return self.clearAndMakeError("Only one aggregate function allowed.")
 
                 except AttributeError:
 
