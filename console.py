@@ -167,7 +167,7 @@ class Console:
         for i in range(len(self.parsed_query['columns'])):
             if self.parsed_query['columns'][i] == "agg_column":
                 continue
-            
+
             found = False
             for j in range(len(self.schema['column_types'])):
                 if self.parsed_query['columns'][i] == self.schema['column_types'][j]['name']:
@@ -207,6 +207,7 @@ class Console:
     def runQuery(self):
         if 'error' in self.parsed_query:
             print("ERROR:", self.parsed_query['error'])
+            return 0
         
         # First check if database is selected.
         if self.database is None:
