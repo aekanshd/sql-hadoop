@@ -165,6 +165,9 @@ class Console:
             return 0
 
         for i in range(len(self.parsed_query['columns'])):
+            if self.parsed_query['columns'][i] == "agg_column":
+                continue
+            
             found = False
             for j in range(len(self.schema['column_types'])):
                 if self.parsed_query['columns'][i] == self.schema['column_types'][j]['name']:
