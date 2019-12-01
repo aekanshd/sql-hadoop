@@ -1,4 +1,5 @@
 from os import system, name
+from subprocess import Popen, PIPE
 import sys
 import subprocess
 import json
@@ -34,12 +35,21 @@ class Console:
             print()
 
     """
-        Function to run a system command.
+        Function to run a system command. Command Output
     """
 
-    def runCommand(self, cmd):
+    def runCommand(self, cmd, returnValue=False):
         self.log("Ran Command:", cmd)
+        if not returnValue:
+            p = Popen(cmd.split(" "), stdin=PIPE, stdout=PIPE, stderr=PIPE)
+            output, err = p.communicate()
+            output = output.decode('utf-8')
+            self.log("Command Output", output)
+            rc = p.returncode
+            return output
+
         return subprocess.call([cmd], shell=True)
+
 
     """
         Function to check if path exists on HDFS.
@@ -47,7 +57,7 @@ class Console:
     """
 
     def checkIfExistsOnHDFS(self, path):
-        test = self.runCommand("hdfs dfs -test -e " + path)
+        test = self.runCommand("hdfs dfs -test -e " + path, returnValue=True)
         return 0 if int(test) else 1
 
     """
@@ -142,6 +152,7 @@ class Console:
                     self.database = None
                 elif self.parsed_query['type'] == "load_existing":
                     self.schema = json.loads(self.runCommand("hdfs dfs -cat " + self.home_dir + "/" + self.database + ".json"))
+                    self.log("Got the schema:", self.schema)
                     print("Switched to database:", self.database)
     
     """
