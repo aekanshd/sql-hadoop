@@ -1,3 +1,6 @@
+import re
+import traceback
+
 class SimpleSQLParser:
     QUERY = None
     DICTIONARY = None
@@ -94,7 +97,9 @@ class SimpleSQLParser:
                 if self.getSelectedColumnNames(self.QUERY):
                     # Get optional WHERE Clauses in a dictionary.
                     if self.getWHEREClauses(self.QUERY):
-                        return self.DICTIONARY
+                        # Finally, parse aggregate functions:
+                        if self.getAggregateFunctions():
+                            return self.DICTIONARY
             elif self.DICTIONARY['type'].lower().startswith("load"):
                 # This is a load query, enter this flow.
                 if self.parseLOADDatabase(self.QUERY):
@@ -329,3 +334,87 @@ class SimpleSQLParser:
 
             if 'column_types' not in self.DICTIONARY:
                 self.clearAndMakeError("Incomplete query.")
+
+        return 1
+
+    """
+        Function to get aggregate functions in the query.
+        Adds the following keys:
+
+        aggregate: Function to perform.
+        agg_column: Column to perform above on.
+        
+        Removed original column, and adds a special
+        column called: "agg_column" to the column list.
+    """
+
+    def getAggregateFunctions(self):
+        
+        # If not select query, just exit
+        if not self.DICTIONARY['type'] == "select":
+            return 1
+        else:
+
+            # Predefine both keys as null
+            self.DICTIONARY['aggregate'] = None
+            self.DICTIONARY['agg_column'] = None
+            
+            # Loop through each column
+            for i in range(len(self.DICTIONARY['columns'])):
+                
+                # First check if they are empty brackets
+                try:
+                    self.DICTIONARY['columns'][i].index("()", 0)
+                    
+                    # Found! Return with error.
+                    return self.clearAndMakeError("Incomplete aggregate function.")
+                except ValueError:
+                    pass
+                
+                # Search for "(word)" regex, where word != NULL or only spaces
+                try:
+                    # Special case: func(*)
+                    try:
+                        self.DICTIONARY['columns'][i].index("(*)", 0)
+                        
+                        # Found! Set all appropriate keys manually.
+                        self.DICTIONARY['agg_column'] = "*"
+                        self.DICTIONARY['aggregate'] = self.DICTIONARY['columns'][i].replace("(" + self.DICTIONARY['agg_column'] + ")", "").lower().strip(" ")
+                        self.DICTIONARY['columns'][i] = "agg_column"
+                        continue
+                    except ValueError:
+                        pass
+
+                    # Get column name between brackets
+                    self.DICTIONARY['agg_column'] = re.search(r"\((\w+)\)", self.DICTIONARY['columns'][i]).group(0)[1:-1].lower().strip(" ")
+                    # Get function name
+                    self.DICTIONARY['aggregate'] = self.DICTIONARY['columns'][i].replace("(" + self.DICTIONARY['agg_column'] + ")", "").lower().strip(" ")
+
+                    # Safe check if either of the above are empty.
+                    if self.DICTIONARY['agg_column'] == "" or self.DICTIONARY['aggregate'] == "":
+                        return self.clearAndMakeError("Incomplete aggregate function.")
+
+                    # Only replace original column name if agg_column is NOT empty.
+                    if self.DICTIONARY['agg_column'] is not None:
+                        self.DICTIONARY['columns'][i] = "agg_column" 
+
+                except AttributeError:
+
+                    # Regex NOT found - either not there, or brackets with spaces
+                    try:
+                        # Check if the column has any brackets,
+                        # If yes - immediately raise an error.
+                        self.DICTIONARY['columns'][i].index("(", 0)
+                        self.DICTIONARY['columns'][i].index(")", 0)
+
+                        return self.clearAndMakeError("Incomplete aggregate function.")
+                    except ValueError:
+                        # No regex, no spaces, no empty brackets
+                        # Just move on to the next column
+                        continue
+                except Exception:
+                    # There was some weird error.
+                    return self.clearAndMakeError("Could not parse aggregate function(s).")
+                    
+            # All went well - return.
+            return 1
