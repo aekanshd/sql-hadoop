@@ -50,7 +50,6 @@ class Console:
 
         return subprocess.call([cmd], shell=True)
 
-
     """
         Function to check if path exists on HDFS.
         Returns 1 if path exists, else 0.
@@ -154,7 +153,50 @@ class Console:
                     self.schema = json.loads(self.runCommand("hdfs dfs -cat " + self.home_dir + "/" + self.database + ".json"))
                     self.log("Got the schema:", self.schema)
                     print("Switched to database:", self.database)
+   
+    """
+        Function to verify column names.
+    """
     
+    def checkColumnNames(self):
+        
+        if self.schema is None:
+            print("ERROR: No database schema available. Please LOAD again.")
+            return 0
+
+        for i in range(len(self.parsed_query['columns'])):
+            found = False
+            for j in range(len(self.schema['column_types'])):
+                if self.parsed_query['columns'][i] == self.schema['column_types'][j]['name']:
+                    found = True
+                    break
+            if not found:
+                print("ERROR: No column named", self.parsed_query['columns'][i] + " found.")
+                return 0
+        
+        # All columns are available to us.
+        return 1
+    
+    """
+        Function to check if aggregates are ONLY
+        on Integer values.
+    """
+
+    def checkAggColComp(self):
+        if self.schema is None:
+            print("ERROR: No database schema available. Please LOAD again.")
+            return 0
+
+        for i in range(len(self.schema['column_types'])):
+            if self.parsed_query['agg_column'] == self.schema['column_types'][i]['name']:
+                if self.schema['column_types'][i]['datatype'] != "integer":
+                    print("ERROR: Cannot aggregate over column", self.parsed_query['agg_column'], "of type <" + str(self.schema['column_types'][i]['datatype']) + ">.")
+                    return 0
+                break
+        
+        # Column passed the test.
+        return 1
+   
     """
         Main function to execute the given query.
     """
@@ -162,10 +204,21 @@ class Console:
     def runQuery(self):
         if 'error' in self.parsed_query:
             print("ERROR:", self.parsed_query['error'])
-        elif self.database is None and not self.parsed_query['type'].startswith("load"):
-            print("ERROR: No database active.")
+        
+        # First check if database is selected.
+        if self.database is None:
+            if not self.parsed_query['type'].startswith("load"):
+                print("ERROR: No database active.")
+            else:
+                self.checkAndChangeDB()
         else:
-            self.checkAndChangeDB()
+            # Database is active.
+            if self.parsed_query['type'].startswith("load"):
+                self.checkAndChangeDB()
+            else:
+                if self.checkColumnNames():
+                    # Checks were succesfull, now do something.
+                    self.checkAggColComp()
 
 
     """
