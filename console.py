@@ -226,6 +226,7 @@ class Console:
                 if self.checkColumnNames():
                     # Checks were succesfull, now do something.
                     self.checkAggColComp()
+                    self.runCommand("hdfs dfs -cat " + self.home_dir + "/" + self.schema['csv_file_name'] + " | python3 mapper.py " + self.schema + " " + self.parsed_query)
 
 
     """
