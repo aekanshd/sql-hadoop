@@ -197,6 +197,9 @@ class Console:
                     return 0
                 break
         
+        if self.parsed_query['aggregate'] is not None and self.parsed_query['aggregate'] is not None and len(self.parsed_query['columns']) > 1:
+            print("WARNING: Columns other than agg_column will be dropped.")
+
         # Column passed the test.
         return 1
    
