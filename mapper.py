@@ -69,6 +69,7 @@ if len(query['clauses']['or']) == 0 and len(query['clauses']['and']) == 0 and qu
     print('%s^%s^%s' % ("project",key, value))
 
     output = dict()
+    output['header'] = query['columns']
     output['key'] = query['columns']
     #value = select_columns
     output['value'] = select_columns
@@ -115,6 +116,7 @@ if len(query['clauses']['and']) > 0 and query['aggregate'] is not None:
     
 
     output = dict()
+    output['header'] = query['columns']
     output['key'] = query['aggregate']
     #value = select_columns
     output['value'] = agg_list
@@ -134,12 +136,13 @@ if len(query['clauses']['or']) > 0 and query['aggregate'] is not None:
             if d[i][1][-1] == '=' and int(line[int(d[i][1][0])]) == d[i][1][1]:
                     agg_list.append(line[agg_column_num])
             elif d[i][1][-1] == '>' and int(line[int(d[i][1][0])]) < d[i][1][1]:
-                    agg_list.append(line[agg_column_num])
+                    agg_list.append(lin[agg_column_num])
             elif d[i][1][-1] == '<' and int(line[int(d[i][1][0])]) > d[i][1][1]:
                     agg_list.append(line[agg_column_num])
     
 
     output = dict()
+    output['header'] = query['columns']
     output['key'] = query['aggregate']
     #value = select_columns
     output['value'] = agg_list
@@ -159,6 +162,7 @@ if len(query['clauses']['or']) == 0 and query['aggregate'] is not None:
     
 
     output = dict()
+    output['header'] = query['columns']
     output['key'] = query['aggregate']
     #value = select_columns
     output['value'] = agg_list
@@ -187,6 +191,7 @@ if len(query['clauses']['or']) > 0 and query['aggregate'] is None:
 
 
     output = dict()
+    output['header'] = query['columns']
     output['key'] = query['clauses']['or']
     #value = select_columns
     output['value'] = select_columns
@@ -215,7 +220,7 @@ if len(query['clauses']['and']) > 0 and query['aggregate'] is None:
             elif c[i][1][-1] == '<' and int(line[int(c[i][1][0])]) < c[i][1][1]:
                 #print("In here. 1")
                 for i in range(len(list(get_column_num(query_cols, schema_cols, 0, query_and).values()))):
-                    #print(list(get_column_num(query_cols, schema_cols, 0, query_and).values()),line[int(get_col_nums_list[i])])
+                    # print(list(get_column_num(query_cols, schema_cols, 0, query_and).values()),line[int(get_col_nums_list[i])])
                     if value == "pending":
                         select_columns[i].append(line[int(get_col_nums_list[i])])
                         value = False
@@ -237,6 +242,7 @@ if len(query['clauses']['and']) > 0 and query['aggregate'] is None:
 
 
     output = dict()
+    output['header'] = query['columns']
     output['key'] = query['clauses']['and']
     #value = select_columns
     output['value'] = select_columns
