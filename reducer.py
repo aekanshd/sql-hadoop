@@ -5,8 +5,9 @@ import json
 empty_str = ''
 for line in sys.stdin:
     empty_str += line
+print(empty_str)
 dictionary = json.loads(empty_str)
-#print(dictionary)
+print(dictionary)
 
 if dictionary['type'] == "project":
     print(dictionary['value'])

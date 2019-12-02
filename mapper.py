@@ -66,7 +66,7 @@ if len(query['clauses']['or']) == 0 and len(query['clauses']['and']) == 0 and qu
     
     key = query['columns']
     value = str(select_columns)[1:-1]           
-    print('%s^%s^%s' % ("project",key, value))
+    #print('%s^%s^%s' % ("project",key, value))
 
     output = dict()
     output['header'] = query['columns']
