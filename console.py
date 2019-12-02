@@ -190,15 +190,15 @@ class Console:
             print("ERROR: No database schema available. Please LOAD again.")
             return 0
 
+        if self.parsed_query['aggregate'] is not None and self.parsed_query['agg_column'] is not None and len(self.parsed_query['columns']) > 1:
+            print("WARNING: Columns other than agg_column will be dropped.")
+
         for i in range(len(self.schema['column_types'])):
             if self.parsed_query['agg_column'] == self.schema['column_types'][i]['name']:
                 if self.schema['column_types'][i]['datatype'] != "integer":
                     print("ERROR: Cannot aggregate over column", self.parsed_query['agg_column'], "of type <" + str(self.schema['column_types'][i]['datatype']) + ">.")
                     return 0
                 break
-        
-        if self.parsed_query['aggregate'] is not None and self.parsed_query['aggregate'] is not None and len(self.parsed_query['columns']) > 1:
-            print("WARNING: Columns other than agg_column will be dropped.")
 
         # Column passed the test.
         return 1
@@ -225,8 +225,8 @@ class Console:
             else:
                 if self.checkColumnNames():
                     # Checks were succesfull, now do something.
-                    self.checkAggColComp()
-                    self.runCommand("hdfs dfs -cat " + self.home_dir + "/" + self.schema['csv_file_name'] + " | python3 mapper.py \'" + json.dumps(self.schema) + "\' \'" + json.dumps(self.parsed_query) + "\' | python3 reducer.py", returnValue=True)
+                    if self.checkAggColComp():
+                        self.runCommand("hdfs dfs -cat " + self.home_dir + "/" + self.schema['csv_file_name'] + " | python3 mapper.py \'" + json.dumps(self.schema) + "\' \'" + json.dumps(self.parsed_query) + "\' | python3 reducer.py", returnValue=True)
 
 
     """
