@@ -165,7 +165,7 @@ class Console:
             return 0
 
         for i in range(len(self.parsed_query['columns'])):
-            if self.parsed_query['columns'][i] == "agg_column":
+            if self.parsed_query['columns'][i] == "agg_column" or self.parsed_query['columns'][i] == "*":
                 continue
 
             found = False
