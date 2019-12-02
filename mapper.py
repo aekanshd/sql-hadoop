@@ -2,12 +2,14 @@ import sys
 import json
 
 # rough_schema = {'type': 'load', 'database': 'bigdata', 'csv_file_name': 'project_list.csv', 'column_types': [{'name': 'batsman', 'datatype': 'string'}, {'name': 'bowler', 'datatype': 'string'}, {'name': 'wickets', 'datatype': 'integer'}, {'name': 'runs', 'datatype': 'integer'}], 'aggregate': 'avg', 'agg_column': 'student_name'}
-# query = {'type': 'select', 'aggregate': 'sum', 'agg_column': 'wickets', 'columns': ['agg_column'], 'clauses': {'or': [], 'and': ['runs > 28']}}
+# query = {'type': 'select', 'aggregate': None, 'agg_column': None, 'columns': ['*'], 'clauses': {'or': [], 'and': []}}
 
 
 rough_schema = json.loads(sys.argv[1])
 query = json.loads(sys.argv[2])
 
+if query['columns'][0] == "*":
+    query['columns'] = [rough_schema['column_types'][i]['name'] for i in range(0,len(rough_schema['column_types']))]
 
 #'wickets = 5', 'runs = 29'
 #Get column names from schema 
