@@ -2,7 +2,7 @@ import sys
 import json
 
 rough_schema = {'type': 'load', 'database': 'bigdata', 'csv_file_name': 'project_list.csv', 'column_types': [{'name': 'batsman', 'datatype': 'string'}, {'name': 'bowler', 'datatype': 'string'}, {'name': 'wickets', 'datatype': 'integer'}, {'name': 'runs', 'datatype': 'integer'}], 'aggregate': 'avg', 'agg_column': 'student_name'}
-query = {'type': 'select', 'aggregate': None, 'agg_column': None, 'columns': ['batsman', 'bowler'], 'clauses': {'or': [], 'and': ['wickets = 5', 'runs = 29']}}
+query = {'type': 'select', 'aggregate': None, 'agg_column': None, 'columns': ['batsman'], 'clauses': {'or': [], 'and': ['wickets > 1']}}
 
 
 #rough_schema = json.loads(sys.argv[1])
@@ -85,14 +85,33 @@ if len(query['clauses']['and']) > 0 and query['aggregate'] is not None:
     for line in sys.stdin:
         line = line.strip().split(',')
 
+        value = False if len(query['clauses']['and']) > 1 else None
         for i in range(len(list(get_column_num(query_cols, schema_cols, 2, query_and).values()))):
         
             if c[i][1][-1] == '=' and int(line[int(c[i][1][0])]) == c[i][1][1]:
-                    agg_list.append(line[agg_column_num])
-            if c[i][1][-1] == '>' and int(line[int(c[i][1][0])]) < c[i][1][1]:
-                    agg_list.append(line[agg_column_num])
-            if c[i][1][-1] == '<' and int(line[int(c[i][1][0])]) > c[i][1][1]:
-                    agg_list.append(line[agg_column_num])
+                    if value == "pending":
+                        agg_list.append(line[agg_column_num])
+                        value = False
+                    elif value is False:
+                        value = "pending"
+                    elif value is None:
+                        agg_list.append(line[agg_column_num])
+            if c[i][1][-1] == '<' and int(line[int(c[i][1][0])]) < c[i][1][1]:
+                    if value == "pending":
+                        agg_list.append(line[agg_column_num])
+                        value = False
+                    elif value is False:
+                        value = "pending"
+                    elif value is None:
+                        agg_list.append(line[agg_column_num])
+            if c[i][1][-1] == '>' and int(line[int(c[i][1][0])]) > c[i][1][1]:
+                    if value == "pending":
+                        agg_list.append(line[agg_column_num])
+                        value = False
+                    elif value is False:
+                        value = "pending"
+                    elif value is None:
+                        agg_list.append(line[agg_column_num])
     
 
     output = dict()
@@ -181,31 +200,40 @@ if len(query['clauses']['and']) > 0 and query['aggregate'] is None:
     for line in sys.stdin:
         line = line.strip().split(',')
 
-        value = False
+        value = False if len(query['clauses']['and']) > 1 else None
         for i in range(len(list(get_column_num(query_cols, schema_cols, 2, query_and).values()))):
-
+            # print(int(line[int(c[i][1][0])]),c[i][1][1])
             if c[i][1][-1] == '=' and int(line[int(c[i][1][0])]) == c[i][1][1]:
                 for i in range(len(list(get_column_num(query_cols, schema_cols, 0, query_and).values()))):
-                    if value is False:
-                        print("H")
-                        value = "pending"
-                    elif value == "pending":
-                        value = False
+                    if value == "pending":
                         select_columns[i].append(line[int(get_col_nums_list[i])])
-            if c[i][1][-1] == '>' and int(line[int(c[i][1][0])]) < c[i][1][1]:
+                        value = False
+                    elif value is False:
+                        value = "pending"
+                    elif value is None:
+                        select_columns[i].append(line[int(get_col_nums_list[i])])
+            elif c[i][1][-1] == '<' and int(line[int(c[i][1][0])]) < c[i][1][1]:
+                print("In here. 1")
                 for i in range(len(list(get_column_num(query_cols, schema_cols, 0, query_and).values()))):
-                    if value is False:
-                        value = "pending"
-                    elif value == "pending":
+                    print(list(get_column_num(query_cols, schema_cols, 0, query_and).values()),line[int(get_col_nums_list[i])])
+                    if value == "pending":
                         select_columns[i].append(line[int(get_col_nums_list[i])])
                         value = False
-            if c[i][1][-1] == '<' and int(line[int(c[i][1][0])]) > c[i][1][1]:
+                    elif value is False:
+                        value = "pending"
+                    elif value is None:
+                        select_columns[i].append(line[int(get_col_nums_list[i])])
+            elif c[i][1][-1] == '>' and int(line[int(c[i][1][0])]) > c[i][1][1]:
                 for i in range(len(list(get_column_num(query_cols, schema_cols, 0, query_and).values()))):
-                    if value is False:
-                        value = "pending"
-                    elif value == "pending":
+                    if value == "pending":
                         select_columns[i].append(line[int(get_col_nums_list[i])])
                         value = False
+                    elif value is False:
+                        value = "pending"
+                    elif value is None:
+                        select_columns[i].append(line[int(get_col_nums_list[i])])
+            # print("line", line[int(c[i][1][0])], c[i][1][1], value)
+        
 
 
     output = dict()
