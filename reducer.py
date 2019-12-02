@@ -1,7 +1,12 @@
 import csv
 import sys
+import json
 
-empty = []
-x = ''
+empty_str = ''
 for line in sys.stdin:
-    print(type(line))
+    empty_str += line
+dictionary = json.loads(empty_str)
+print(dictionary)
+
+if dictionary['type'] == "project":
+    print(dictionary['value'])
