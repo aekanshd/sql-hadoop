@@ -1,12 +1,12 @@
 import sys
 import json
 
-rough_schema = {'type': 'load', 'database': 'bigdata', 'csv_file_name': 'project_list.csv', 'column_types': [{'name': 'batsman', 'datatype': 'string'}, {'name': 'bowler', 'datatype': 'string'}, {'name': 'wickets', 'datatype': 'integer'}, {'name': 'runs', 'datatype': 'integer'}], 'aggregate': 'avg', 'agg_column': 'student_name'}
-query = {'type': 'select', 'aggregate': None, 'agg_column': None, 'columns': ['batsman'], 'clauses': {'or': [], 'and': ['wickets > 1']}}
+#rough_schema = {'type': 'load', 'database': 'bigdata', 'csv_file_name': 'project_list.csv', 'column_types': [{'name': 'batsman', 'datatype': 'string'}, {'name': 'bowler', 'datatype': 'string'}, {'name': 'wickets', 'datatype': 'integer'}, {'name': 'runs', 'datatype': 'integer'}], 'aggregate': 'avg', 'agg_column': 'student_name'}
+#query = {'type': 'select', 'aggregate': 'avg', 'agg_column': 'runs', 'columns': ['bowler'], 'clauses': {'or': [], 'and': []}}
 
 
-#rough_schema = json.loads(sys.argv[1])
-#query = json.loads(sys.argv[2])
+rough_schema = json.loads(sys.argv[1])
+query = json.loads(sys.argv[2])
 
 
 #'wickets = 5', 'runs = 29'
@@ -115,7 +115,7 @@ if len(query['clauses']['and']) > 0 and query['aggregate'] is not None:
     
 
     output = dict()
-    output['key'] = [query['aggregate']]
+    output['key'] = query['aggregate']
     #value = select_columns
     output['value'] = agg_list
     output['type'] = "where_agg_and"
@@ -140,10 +140,10 @@ if len(query['clauses']['or']) > 0 and query['aggregate'] is not None:
     
 
     output = dict()
-    output['key'] = [query['aggregate']]
+    output['key'] = query['aggregate']
     #value = select_columns
     output['value'] = agg_list
-    output['type'] = "where_only_or"
+    output['type'] = "where_agg_or"
     #value = json.loads(value)
     #key, value = str(key), str(value)          
     print('%s' % (json.dumps(output)))
@@ -159,10 +159,10 @@ if len(query['clauses']['or']) == 0 and query['aggregate'] is not None:
     
 
     output = dict()
-    output['key'] = [query['aggregate']]
+    output['key'] = query['aggregate']
     #value = select_columns
     output['value'] = agg_list
-    output['type'] = "aggregate"
+    output['type'] = "aggregate_only"
     #value = json.loads(value)
     #key, value = str(key), str(value)          
     print('%s' % (json.dumps(output)))
@@ -213,9 +213,9 @@ if len(query['clauses']['and']) > 0 and query['aggregate'] is None:
                     elif value is None:
                         select_columns[i].append(line[int(get_col_nums_list[i])])
             elif c[i][1][-1] == '<' and int(line[int(c[i][1][0])]) < c[i][1][1]:
-                print("In here. 1")
+                #print("In here. 1")
                 for i in range(len(list(get_column_num(query_cols, schema_cols, 0, query_and).values()))):
-                    print(list(get_column_num(query_cols, schema_cols, 0, query_and).values()),line[int(get_col_nums_list[i])])
+                    #print(list(get_column_num(query_cols, schema_cols, 0, query_and).values()),line[int(get_col_nums_list[i])])
                     if value == "pending":
                         select_columns[i].append(line[int(get_col_nums_list[i])])
                         value = False
