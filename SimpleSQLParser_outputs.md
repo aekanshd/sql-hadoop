@@ -69,6 +69,8 @@ SELECT AVG(col1), SUM(col2) WHERE col1 > 3
 > {'error': 'Only one aggregate function allowed.'}
 SELECT AVG(col1) WHERE col1 > 3
 > {'type': 'select', 'columns': ['agg_column'], 'clauses': {'and': ['col1 > 3'], 'or': []}, 'aggregate': 'avg', 'agg_column': 'col1'}
+SELECT SUM(col1) WHERE col1 = 3
+> {'error': Cannot aggregate over column col1 of type <string>.'}
 ```
 
 ## The code
@@ -241,5 +243,11 @@ print(">",parser.getParsedQuery())
 q = "SELECT AVG(col1) WHERE col1 > 3"
 parser.parseQuery(q)
 print(q)
+print(">",parser.getParsedQuery())
+
+q = "SELECT SUM(col1) WHERE col1 = 3"
+parser.parseQuery(q)
+print(q)
+# After console's runQuery():
 print(">",parser.getParsedQuery())
 ```
