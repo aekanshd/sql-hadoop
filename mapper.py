@@ -2,7 +2,7 @@ import sys
 import json
 
 # rough_schema = {'type': 'load', 'database': 'bigdata', 'csv_file_name': 'project_list.csv', 'column_types': [{'name': 'batsman', 'datatype': 'string'}, {'name': 'bowler', 'datatype': 'string'}, {'name': 'wickets', 'datatype': 'integer'}, {'name': 'runs', 'datatype': 'integer'}], 'aggregate': 'avg', 'agg_column': 'student_name'}
-# query = {'type': 'select', 'aggregate': 'sum', 'agg_column': 'wickets', 'columns': ['agg_column'], 'clauses': {'or': [], 'and': []}}
+# query = {'type': 'select', 'aggregate': 'sum', 'agg_column': 'wickets', 'columns': ['agg_column'], 'clauses': {'or': [], 'and': ['runs > 28']}}
 
 
 rough_schema = json.loads(sys.argv[1])
@@ -153,7 +153,7 @@ if len(query['clauses']['or']) > 0 and query['aggregate'] is not None:
 
 
 #Only aggregate
-if len(query['clauses']['or']) == 0 and query['aggregate'] is not None:
+if len(query['clauses']['or']) == 0 and len(query['clauses']['and']) == 0 and query['aggregate'] is not None:
     agg_column_num = schema_cols.index(query_agg)
     for line in sys.stdin:
         line = line.strip().split(',')
