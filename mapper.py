@@ -1,8 +1,8 @@
 import sys
 import json
 
-#rough_schema = {'type': 'load', 'database': 'bigdata', 'csv_file_name': 'project_list.csv', 'column_types': [{'name': 'batsman', 'datatype': 'string'}, {'name': 'bowler', 'datatype': 'string'}, {'name': 'wickets', 'datatype': 'integer'}, {'name': 'runs', 'datatype': 'integer'}], 'aggregate': 'avg', 'agg_column': 'student_name'}
-#query = {'type': 'select', 'aggregate': 'avg', 'agg_column': 'runs', 'columns': ['bowler'], 'clauses': {'or': [], 'and': []}}
+# rough_schema = {'type': 'load', 'database': 'bigdata', 'csv_file_name': 'project_list.csv', 'column_types': [{'name': 'batsman', 'datatype': 'string'}, {'name': 'bowler', 'datatype': 'string'}, {'name': 'wickets', 'datatype': 'integer'}, {'name': 'runs', 'datatype': 'integer'}], 'aggregate': 'avg', 'agg_column': 'student_name'}
+# query = {'type': 'select', 'aggregate': 'sum', 'agg_column': 'wickets', 'columns': ['agg_column'], 'clauses': {'or': [], 'and': []}}
 
 
 rough_schema = json.loads(sys.argv[1])

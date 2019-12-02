@@ -6,6 +6,6 @@ from simpleSQLParser import SimpleSQLParser
 
 home_dir = "/BD_649_692_1744_1808"
 
-console = Console(SimpleSQLParser(strict=True), debug=True)
+console = Console(SimpleSQLParser(strict=True))
 console.setHomeDir(home_dir)
 console.start()
